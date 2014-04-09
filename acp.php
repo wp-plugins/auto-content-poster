@@ -34,18 +34,23 @@ class ACP_Wordpress {
 		
 	}
 	public function add_advance_items() {
-		add_options_page('Auto Content Poster Advance Settings', 'ACP Advance Settings', 'administrator', 'PostSetting', array($this,'ACP_options2'));
-		
+		 $page_hook_suffix = add_options_page('Auto Content Poster Advance Settings', 'ACP Advance Settings', 'administrator', 'PostSetting', array($this,'ACP_options2'));
+		 add_action('admin_print_scripts-' . $page_hook_suffix, array($this,'ACP_scripts'));
 	}
-
+	
+	public function ACP_scripts(){
+		 wp_enqueue_script( 'ACP-script' );
+	}
 
 	public function register_aioasettings() {
 		register_setting( 'ACP_settings', 'ACP_settings' );
+		
 	}	
 	public function register_advance_settings() {
 		$advoptions = array();
 		 add_option('ACP_advance_settings' , $advoptions);
 		register_setting( 'ACP_advance_settings', 'ACP_advance_settings' );
+		wp_register_script( 'ACP-script', plugins_url( 'js/acp.js', __FILE__ ) );
 	}	
 	public function ACP_options() {
 		include('includes/options-page.php');

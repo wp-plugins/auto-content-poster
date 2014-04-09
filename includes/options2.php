@@ -1,7 +1,7 @@
 <div class="wrap">
 	<h2><?php _e('Auto Content Poster - Advance Settings','auto-content-poster');?></h2>
 
-	<form method="post" action="options.php">
+	<form method="post" action="options.php" name="adv_form" onsubmit="return validate();">
 		<?php settings_fields( 'ACP_advance_settings' ); ?>
 		<?php $advoptions = get_option('ACP_advance_settings'); ?> 
 		<table class="form-table">
