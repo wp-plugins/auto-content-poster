@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.0
+Version: 1.1
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
