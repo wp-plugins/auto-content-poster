@@ -2,14 +2,14 @@
 /*
 Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
-Plugin URI: http://www.auto-poster.com
+Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
 Version: 1.0
 Author: Bhavin Toliya
-Author URI: http://www.auto-poster.com
+Author URI: http://www.acp.y5q.net
 License: GPL v2.
 */
-ini_set('display_errors', 1 ); 
+ini_set('display_errors', 0 ); 
 set_time_limit(600);
 
 class ACP_Wordpress {
@@ -25,10 +25,7 @@ class ACP_Wordpress {
 	}
 	}
 	
-	//uninstall plugin
 	
-
-	//Add needed items on admin page load.
 	public function add_admin_items() {
 		add_options_page('Auto Content Poster Settings', 'ACP Settings', 'administrator', 'ACPoptions', array($this,'ACP_options'));
 		
@@ -60,9 +57,41 @@ class ACP_Wordpress {
 	}
 	
 }
+function ACP_interval($c,$int=''){
+	switch($c){
+		case 'daily':
+			wp_clear_scheduled_hook('ACPdailyevent');
+			wp_schedule_event(time(),'daily','ACPdailyevent');
+			break;
+		case 'hourly':
+			wp_clear_scheduled_hook('ACPdailyevent');
+			wp_schedule_event(time(),'hourly','ACPdailyevent');
+			break;
+		case 'twicedaily':
+			wp_clear_scheduled_hook('ACPdailyevent');
+			wp_schedule_event(time(),'twicedaily','ACPdailyevent');
+			break;
+		case 'custom':
+			if($int){
+				add_filter('cron_schedules', 'ACP_cron_schedules');
+				
+				function ACP_cron_schedules($int) {
+     				return array('custom' => array(
+         				 'interval' => $int, // seconds
+         				 'display'  => __('Custom Interval')
+    				 ));
+				}
+				wp_clear_scheduled_hook('ACPdailyevent');
+				wp_schedule_event(time(),'custom','ACPdailyevent');
+				
+			}
+			break;
+	}
 
+}
 function ACP_deactivate() {
 		global $wpdb;
+		wp_clear_scheduled_hook('ACPdailyevent');
 		delete_option('ACP_settings');
 		delete_option('ACP_advance_settings');
 		$q = "DROP TABLE bestcjdb";
@@ -252,7 +281,17 @@ function ACPposter(){
 			}
 	
 }
-
+function ACP_get_interval(){
+	foreach (_get_cron_array() as $timestamp => $crons) {
+	foreach ($crons as $cron_name => $cron_args) {
+		foreach ($cron_args as $cron) {
+			if($cron_name == 'ACPdailyevent'){
+				return $cron['interval'];
+			}
+		}
+	}
+}
+}
 if( class_exists( 'ACP_Wordpress' ) ) {
 	$ACP = new ACP_Wordpress();
 	
@@ -277,25 +316,27 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 	add_action( 'admin_init', array(&$ACP,'register_advance_settings') );
 	}
  if(!empty($advoptions['post_record'])){
- 	/*add_filter('cron_schedules', 'filter_cron_schedules');
-	function filter_cron_schedules($param) {
-     return array('minute' => array(
-          'interval' => 60, // seconds
-          'display'  => __('Every minute')
-     ));
-}*/
-	if(!empty($advoptions['category']) and $advoptions['category']=='manual' and !empty($advoptions['category_name'])){
+ 	if(!empty($advoptions['category']) and $advoptions['category']=='manual' and !empty($advoptions['category_name'])){
 		$cat = strtolower($advoptions['category_name']);
 	}else{
 		$cat = FALSE;
+	}
+	$s = wp_get_schedule('ACPdailyevent');
+	
+	if($s != $advoptions['interval']){
+		if(!empty($advoptions['custom_int'])){
+			$in = (int)$advoptions['custom_int']*3600;
+			if($in != ACP_get_interval()){
+				ACP_interval($advoptions['interval'],$in);
+			}
+		}else{
+			ACP_interval($advoptions['interval']);
+		}
 	}
  	include_once(ABSPATH.'wp-admin/includes/taxonomy.php');
 	$record = $advoptions['post_record'];
 	$api_key = $options['ACP_key'];
 	$webid = $options['cj_site_id'];
-	if(!wp_next_scheduled('ACPdailyevent')){
-		wp_schedule_event(time(),'daily','ACPdailyevent');
-	}
 	add_action('ACPdailyevent','ACPposter');
 	
 }

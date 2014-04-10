@@ -20,4 +20,19 @@ if (c == -1)
 	 alert("please select at least one option in category");
 	 return false;
 }
+
+var a = document.getElementsByName("ACP_advance_settings[interval]")
+var b = -1
+
+for(var j=0; j < a.length; j++){
+   if(a[j].checked) {
+      b = j; 
+   }
+}
+if (b == -1)
+{
+	 alert("please select at least one option in Interval");
+	 return false;
+}
+
 }
