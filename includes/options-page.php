@@ -1,6 +1,10 @@
+<?php if( isset($_GET['settings-updated']) ) { ?>
+    <div id="message" class="updated">
+        <p><strong><?php _e('Good Work ! Now please go to Settings->ACP Advance Settings','auto-content-poster') ?></strong></p>
+    </div>
+<?php } ?>
 <div class="wrap">
 	<h2><?php _e('Auto Content Poster - Settings','auto-content-poster');?></h2>
-
 	<form method="post" action="options.php">
 		<?php settings_fields( 'ACP_settings' ); ?>
 		<?php $options = get_option('ACP_settings'); ?> 
