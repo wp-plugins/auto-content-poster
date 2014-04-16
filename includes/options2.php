@@ -21,7 +21,8 @@
 			<tr valign="top"><th scope="row"><?php _e('Choose an Interval: ','auto-content-poster');?></th>
        <td style="width: 100px;"> <input type="radio" name="ACP_advance_settings[interval]" value="hourly"<?php checked( 'hourly' == $advoptions['interval'] ); ?> onclick="hide();"/><?php _e('Per Hour','auto-content-poster');?> </td>
        <td style="width: 100px;"><input type="radio" name="ACP_advance_settings[interval]" value="twicedaily"<?php checked( 'twicedaily' == $advoptions['interval'] ); ?> onclick="hide();"/><?php _e('Twice Daily ','auto-content-poster');?></td>
-       <td style="width: 100px;"><input type="radio" name="ACP_advance_settings[interval]" value="daily"<?php checked( 'daily' == $advoptions['interval'] ); ?> onclick="hide();"/><?php _e('Daily ','auto-content-poster');?></td><td><input type="radio" name="ACP_advance_settings[interval]" value="custom"<?php checked( 'custom' == $advoptions['interval'] );?> onclick="show();"/><?php _e('Custom interval in hour: ','auto-content-poster');?><input type="text" id="custom_int" name="ACP_advance_settings[custom_int]" value="<?php if(!empty($advoptions['custom_int']))echo $advoptions['custom_int'];?>" style="display: none;"/></td>
+       <td style="width: 100px;"><input type="radio" name="ACP_advance_settings[interval]" value="daily"<?php checked( 'daily' == $advoptions['interval'] ); ?> onclick="hide();"/><?php _e('Daily ','auto-content-poster');?></td>
+       
        </tr>
        <tr valign="top"><th scope="row"><?php _e('Choose all/specific category\'s advertisers from CJ: ','auto-content-poster');?></th>
        <td style="width: 100px;"> <input type="radio" value="auto_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'auto_cj' == $advoptions['category_cj'] ); ?> onclick="hide3();"/><?php _e('Use all category of CJ ','auto-content-poster');?></td>
