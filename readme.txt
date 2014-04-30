@@ -4,8 +4,8 @@ Contributors:  DR_BVT123
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W
 Tags: auto blog, auto post, auto content poster, autoposter,auto poster,commission junction,affliate, marketing
 Requires at least: 3.0
-Tested up to: 3.8.3
-Stable tag: 1.2
+Tested up to: 3.9
+Stable tag: 1.3
 License: GPLv2,
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,13 +60,17 @@ you can contact me directly <a href="mailto:ytolia@gmail.com">here</a> or visit 
 == Changelog ==
 
 = 1.0 =
-* Plugin relase
+* Plugin release
 = 1.1 =
 * minor fixes
 * new features added
 = 1.2 =
 * minor fixes
 * new features added
+= 1.3 =
+* minor fixes
+* new features added
+* Amazon and Ebay product comparison added.
 == Upgrade Notice ==
 
 = 1.0 =
@@ -77,3 +81,7 @@ Plugin release
 = 1.2 =
 * minor fixes
 * new features added
+= 1.3 =
+* minor fixes
+* new features added
+* Amazon and Ebay product comparison added.

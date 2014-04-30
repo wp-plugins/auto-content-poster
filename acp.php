@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.2
+Version: 1.3
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -57,6 +57,7 @@ class ACP_Wordpress {
 	}
 	
 }
+
 function ACP_interval($c,$int=''){
 	switch($c){
 		case 'daily':
@@ -90,6 +91,7 @@ function ACP_interval($c,$int=''){
 	}
 
 }
+
 function ACP_deactivate() {
 		global $wpdb;
 		wp_clear_scheduled_hook('ACPdailyevent');
@@ -98,6 +100,7 @@ function ACP_deactivate() {
 		$q = "DROP TABLE bestcjdb";
 		$wpdb->query($q);
 	}
+
 function ACP_cj($b){
 		global $api_key;
 	$url = 'https://advertiser-lookup.api.cj.com/v3/advertiser-lookup?advertiser-ids=joined'.
@@ -114,6 +117,7 @@ function ACP_cj($b){
 			 return $xml;
 		}
 }
+
 function ACP_alltodb(){
 			
 	
@@ -169,6 +173,7 @@ VALUES(NULL,'".$adv->{'advertiser-id'}."','".$adn."','".$adc."')");
  }
  $wpdb->query('UPDATE bestcjdb SET tmp=1 WHERE id=1');
 }	
+
 function ACP_checkdb(){
 	global $wpdb;
 	$sql = "SHOW TABLES LIKE 'bestcjdb'";
@@ -184,8 +189,9 @@ if($retval == 0 || $retval2[0][0] == 0)
 	return false;
 }
 }
+
 function ACPposter(){
-		global $wpdb,$api_key,$webid,$record,$cat,$table;
+		global $wpdb,$api_key,$webid,$record,$cat,$table,$amazon,$acckey,$prikey,$asstag,$region,$ebay,$ebayaff,$ebc;
 		$r = $wpdb->get_results('SELECT MAX(id) FROM '.$table);
 		$max = $r[0]->{'MAX(id)'};
 		$r2 = $wpdb->get_results('SELECT tmp FROM '.$table.' WHERE id=1');
@@ -254,12 +260,44 @@ function ACPposter(){
 				foreach ($data->products[0] as $product) 
 				{
 				// Sanitize data.
-				$price = number_format((float)$product->price, 2, '.', ' ');
-				$image = '<a href="'.$product->{'buy-url'}.'"><img src="'.$product->{'image-url'}							 .'" style="float: right"/></a>';
-				$pd =  $image.$product->description .'--Price ='.$product->currency.' '.
-					   ' ,Retail Price ='.$product->{'retail-price'}.' ,Our Sale Price is '.
-					   $product->{'sale-price'}.'<a href="'.$product->{'buy-url'}.
-						'">...So hurry Buy it Now!</a>';
+				
+				$image = '<a href="'.$product->{'buy-url'}.'"><img src="'.$product->{'image-url'}.'" style="float: right;"/></a>';
+				if($product->{'sale-price'}){
+					$price = $product->{'sale-price'};
+				}else{
+					$price = $product->price;
+				}
+				$pd =  $image.$product->description .'<br/><b>Price:</b>'.$price.' '.$product->currency.'&nbsp;&nbsp;&nbsp;<a href="'.$product->{'buy-url'}.'">Read More and Buy it here!</a>';
+				$pd .= '<br><table>';
+				if($amazon){
+					$asin = acp_asin(acp_amazon_search($prikey,$product->name,$region,$acckey,$asstag));
+					if($asin){
+						$x = 0;
+						$pd .= '<tr><th>Related Products In Amazon</th>';
+						foreach($asin as $as){
+							$am = acp_itemlookup($as[0]);
+							$amz = acp_offers($am);
+							$pd .= '<td>'.$amz['thumbnail'].$amz['description'].'<br/><b>Price:</b>'.$amz['price'].'&nbsp;&nbsp;&nbsp;'.$amz['buynow'].'</td>';
+							if($x == 1){
+								break;
+							}
+							$x++;
+						}
+						$pd .= '</tr>';
+					}else{
+						$pd .= '<tr><th>Related Products In Amazon</th><td>No Matched Products found in Amazon</td></tr>';
+					}
+				}
+				if($ebay){
+					$doc = acp_ebay($product->name,$ebayaff,$ebc);
+					$return = acp_ebayparseRSS($doc);
+					if($return){
+						$pd .= $return;
+					}else{
+						$pd .= '<tr><th>Related Products In Ebay</th><td>No Matched Products found in Ebay</td></tr>';
+					}
+				}
+				$pd .= '</table>';
 				if($cat){
 					$ids = get_term_by('slug', $cat, 'link_category');//wordpress function
 					if($ids){
@@ -287,6 +325,7 @@ function ACPposter(){
 			}
 	
 }
+
 function ACP_get_interval(){
 	foreach (_get_cron_array() as $timestamp => $crons) {
 	foreach ($crons as $cron_name => $cron_args) {
@@ -298,6 +337,7 @@ function ACP_get_interval(){
 	}
 }
 }
+
 function ACP_select(){
 	global $wpdb;
 	$sql = "select adcat,count(*) as c from bestcjdb group by adcat having c>0 ORDER BY adcat";
@@ -310,6 +350,7 @@ function ACP_select(){
 	}
 	return $select;
 }
+
 function ACP_tmptable($a){
 	global $wpdb;
 	
@@ -339,6 +380,7 @@ function ACP_tmptable($a){
 	}
 	$wpdb->query('UPDATE acp_tmp SET tmp=1 WHERE id=1');
 }
+
 function ACP_deletetmptabel(){
 	global $wpdb;
 	$sql2 = "SHOW TABLES LIKE 'acp_tmp'";
@@ -349,6 +391,7 @@ function ACP_deletetmptabel(){
   
 	}
 }
+
 function ACP_optiontable(){
 			global $wpdb;		//wordpress class
 
@@ -366,6 +409,7 @@ if($retval == 0)
    $wpdb->query($sql);
 }
 }
+
 function ACP_update_opttbl($a,$b){
 	global $wpdb;
 	if(ACP_check_opttbl_name($a)){
@@ -375,6 +419,7 @@ function ACP_update_opttbl($a,$b){
 		$wpdb->query("UPDATE opttable SET opt_value='".$b."' WHERE opt_name='".$a."'");
 	}
 }
+
 function ACP_check_opttbl($a){
 	global $wpdb;
 	$re = $wpdb->get_results("select * FROM opttable WHERE opt_value='".$a."'");
@@ -384,6 +429,7 @@ function ACP_check_opttbl($a){
 		return TRUE;
 	}
 }
+
 function ACP_check_opttbl_name($a){
 	global $wpdb;
 	$re = $wpdb->get_results("select * FROM opttable WHERE opt_name='".$a."'");
@@ -393,6 +439,160 @@ function ACP_check_opttbl_name($a){
 		return TRUE;
 	}
 }
+
+function acp_hash_hmac($algo, $data, $key, $raw_output=False){
+		// RFC 2104 HMAC implementation for php. Creates a sha256 HMAC.
+		// Eliminates the need to install mhash to compute a HMAC. Hacked by Lance Rushing. source: http://www.php.net/manual/en/function.mhash.php. modified by Ulrich Mierendorff to work with sha256 and raw output
+		$b = 64; // block size of md5, sha256 and other hash functions
+		if (strlen($key) > $b){
+			$key = pack("H*",$algo($key));
+		}
+		$key = str_pad($key, $b, chr(0x00));
+		$ipad = str_pad('', $b, chr(0x36));
+		$opad = str_pad('', $b, chr(0x5c));
+		$k_ipad = $key ^ $ipad ;
+		$k_opad = $key ^ $opad;
+		$hmac = $algo($k_opad . pack("H*", $algo($k_ipad . $data)));
+		if ($raw_output){
+			return pack("H*", $hmac);
+		}else{
+			return $hmac;
+		}
+	} 
+
+function acp_amazon_search($privatekey,$Keyword,$region,$acckey,$asstag){
+	$Operation = "ItemSearch";
+	$Version = "2011-08-01";
+	$ResponseGroup = "Small";
+	$pkey = $privatekey;
+	$Keywords = rawurlencode($Keyword);
+	$method = "GET";
+	$host = "ecs.amazonaws.".$region; //new API 12-2011
+	$uri = "/onca/xml";
+	$time = rawurlencode(gmdate("Y-m-d\TH:i:s\Z"));
+	$request = "AWSAccessKeyId=".$acckey."&AssociateTag=".$asstag."&Keywords=".$Keywords."&Operation=".$Operation."&ResponseGroup=".$ResponseGroup."&SearchIndex=All&Service=AWSECommerceService&Timestamp=".$time."&Version=2011-08-01";
+	$string_to_sign = $method."\n".$host."\n".$uri."\n".$request;
+	$signature = base64_encode(acp_hash_hmac("sha256", $string_to_sign, $pkey, True));
+	$signature = rawurlencode($signature);
+	$request = "http://".$host.$uri."?".$request."&Signature=".$signature;
+	$xml = simplexml_load_string(file_get_contents($request));
+	return $xml;
+}
+
+function acp_asin($parsed_xml){
+	$numOfItems = $parsed_xml->Items->TotalResults;
+	if($numOfItems>0){
+		foreach($parsed_xml->Items->Item as $current){
+			$asin[] = $current->ASIN;
+		}
+	}
+	return $asin;
+}
+
+function acp_itemlookup($asin){
+	$Operation = "ItemLookup";
+	$Version = "2011-08-01";
+	$ResponseGroup = "Large";
+	$pkey = 'tmMHIlsu+j6Xjs/4y+sH3ezJzYHfaqtksUTAM8ot';
+	$Keywords = rawurlencode('PerioTherapy Oral Rinse (4) & Paste (2)');
+	$method = "GET";
+	$host = "ecs.amazonaws.com"; //new API 12-2011
+	$uri = "/onca/xml";
+	$time = rawurlencode(gmdate("Y-m-d\TH:i:s\Z"));
+	$request = "AWSAccessKeyId=AKIAJY6Q5EUNGZHQXZAA&AssociateTag=bestfaredeals-20&ItemId=".$asin."&Operation=".$Operation."&ResponseGroup=".$ResponseGroup."&Service=AWSECommerceService&Timestamp=".$time."&Version=2011-08-01";
+	$string_to_sign = $method."\n".$host."\n".$uri."\n".$request;
+	$signature = base64_encode(acp_hash_hmac("sha256", $string_to_sign, $pkey, True));
+	$signature = rawurlencode($signature);
+	$request = "http://".$host.$uri."?".$request."&Signature=".$signature;
+	$xml = simplexml_load_string(file_get_contents($request));
+	return $xml;
+}
+
+function acp_offers($pxml){
+	
+	if($pxml->Items->Item->CustomerReviews->IFrameURL) {
+			foreach($pxml->Items->Item as $item) {	
+
+				$desc = "";					
+				if (isset($item->EditorialReviews->EditorialReview)) {
+					foreach($item->EditorialReviews->EditorialReview as $descs) {
+						$desc .= $descs->Content;
+					}		
+				}	
+				
+							
+				
+				$features = "";
+				if (isset($item->ItemAttributes->Feature)) {	
+					$features = "<ul>";
+					foreach($item->ItemAttributes->Feature as $feature) {
+						$posx = strpos($feature, "href=");
+						if ($posx === false) {
+							$features .= "<li>".$feature."</li>";		
+						}
+					}	
+					$features .= "</ul>";				
+				}
+				
+				$timg = $item->MediumImage->URL;
+				if($timg == "") {$timg = $item->SmallImage->URL;}				
+				$thumbnail = '<a href="'.$item->DetailPageURL.'" rel="nofollow"><img style="float:left;margin: 0 20px 10px 0;" src="'.$timg.'" /></a>';					
+				$link = '<a href="'.$item->DetailPageURL.'" rel="nofollow">'.$item->ItemAttributes->Title.'</a>';	
+				$price = str_replace("$", "$ ", $item->OfferSummary->LowestNewPrice->FormattedPrice);
+				$listprice = str_replace("$", "$ ", $item->ItemAttributes->ListPrice->FormattedPrice);
+
+				if($price == "Too low to display" || $price == "Price too low to display") {
+					$price = $listprice;
+				}
+				
+				$acontent = array();
+				$acontent['title'] = $item->ItemAttributes->Title;
+				$acontent['description'] = $desc;
+				$acontent['features'] = $features;
+				$acontent['thumbnail'] = $thumbnail;
+				$acontent['smallimage'] = '<img src="'.$item->SmallImage->URL.'"/>';				$acontent['mediumimage'] = '<img src="'.$item->MediumImage->URL.'"/>';					$acontent['buynow'] = '<a href="'.$item->DetailPageURL.'">Buy it from Amazon</a>';		
+				
+				$acontent['price'] = $price;
+				$acontent['listprice'] = $listprice;
+				$savings = str_replace("$ ", "", $listprice) - str_replace("$ ", "", $price);
+				$acontent['savings'] = $savings;
+				$acontent['url'] = $item->DetailPageURL;	
+				
+			}		
+
+			return $acontent;
+		}
+}
+
+function acp_ebay($keyword,$affkey,$programid){
+	$keyword = str_ireplace(' ','+',$keyword);
+	$keyword = preg_replace('/[^A-Za-z0-9\+]/', '', $keyword);
+	$sortorder = 'BestMatch';
+	$rssurl= "http://rest.ebay.com/epn/v1/find/item.rss?keyword=".$keyword."&campaignid=".urlencode($affkey)."&sortOrder=".$sortorder."&programid=".$programpid."descriptionSearch=true";
+$data = file_get_contents($rssurl);
+$doc = new SimpleXmlElement($data, LIBXML_NOCDATA);
+return $doc;
+}
+
+function acp_ebayparseRSS($xml){
+$desc = "<tr><th>Related Products In Ebay</th>";
+$cnt = count($xml->channel->item);
+if($cnt > 1){
+	for($i=0; $i<$cnt; $i++)
+	{
+		$desc .= '<td>'.$xml->channel->item[$i]->description.'</td>';
+		if ($i == 1)
+		{
+ 		break;
+		}
+	}
+	$desc .= '</tr>';
+	return $desc;
+}else{
+	return FALSE;
+}
+}
+
 if( class_exists( 'ACP_Wordpress' ) ) {
 	$ACP = new ACP_Wordpress();
 	
@@ -412,7 +612,24 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 		$api_key = $options['ACP_key'];
 		ACP_alltodb();
 	}
- if(!empty($options['ACP_key'])){
+ if(!empty($options['ACP_amz_key']) && !empty($options['ACP_amz_pkey']) && !empty($options['ACP_amz_atag'])){
+ 	include_once('includes/sha.php');
+ 	$acckey = $options['ACP_amz_key'];
+ 	$prikey = $options['ACP_amz_pkey'];
+ 	$asstag = $options['ACP_amz_atag'];
+ 	$region = $options['rselect'];
+ 	$amazon = TRUE;
+ }else{
+ 	$amazon = FALSE;
+ }
+ if(!empty($options['ACP_ebay_key'])){
+ 	$ebay = TRUE;
+ 	$ebayaff = $options['ACP_ebay_key'];
+ 	$ebc = $options['eb_select'];
+ }else{
+ 	$ebay = FALSE;
+ }
+  if(!empty($options['ACP_key'])){
 		add_action('admin_menu', array(&$ACP,'add_advance_items') );
 	add_action( 'admin_init', array(&$ACP,'register_advance_settings') );
 	}
@@ -463,7 +680,6 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 	
 }
 }
-
 
 if (!get_option('link_manager_enabled')){
 	add_filter( 'pre_option_link_manager_enabled', '__return_true' );//wordpress option

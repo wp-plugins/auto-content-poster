@@ -26,7 +26,7 @@
        </tr>
        <tr valign="top"><th scope="row"><?php _e('Choose all/specific category\'s advertisers from CJ: ','auto-content-poster');?></th>
        <td style="width: 100px;"> <input type="radio" value="auto_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'auto_cj' == $advoptions['category_cj'] ); ?> onclick="hide3();"/><?php _e('Use all category of CJ ','auto-content-poster');?></td>
-       <td style="width: 100px;"><input type="radio" value="manual_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'manual_cj' == $advoptions['category_cj'] ); ?> onclick="show3();"/><?php _e('Choose below:(number show available advertisers in that category) ','auto-content-poster');?><select name="ACP_advance_settings[cselect]" id="cselect" style="display: none;">
+       <td style="width: 100px;"><input type="radio" value="manual_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'manual_cj' == $advoptions['category_cj'] ); ?> onclick="show3();"/><?php _e('Choose below:(number shows available advertisers in that category) ','auto-content-poster');?><select name="ACP_advance_settings[cselect]" id="cselect" style="display: none;">
 <option value="" selected="selected">Choose a category</option><?php echo ACP_select();?></select></td>
 
 		</tr>
