@@ -3,6 +3,13 @@
         <p><strong><?php _e('Great Work ! All done.','auto-content-poster') ?></strong></p>
     </div>
 <?php } ?>
+<?php if( isset($_GET['post_now']) == true ) {
+	ACPposter();
+	 ?>
+	 <div id="message" class="updated">
+        <p><strong><?php _e('One post created successfully.','auto-content-poster') ?></strong></p>
+    </div>
+<?php } ?>
 <div class="wrap">
 	<h2><?php _e('Auto Content Poster - Advance Settings','auto-content-poster');?></h2>
 
@@ -28,9 +35,15 @@
        <td style="width: 100px;"> <input type="radio" value="auto_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'auto_cj' == $advoptions['category_cj'] ); ?> onclick="hide3();"/><?php _e('Use all category of CJ ','auto-content-poster');?></td>
        <td style="width: 100px;"><input type="radio" value="manual_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'manual_cj' == $advoptions['category_cj'] ); ?> onclick="show3();"/><?php _e('Choose below:(number shows available advertisers in that category) ','auto-content-poster');?><select name="ACP_advance_settings[cselect]" id="cselect" style="display: none;">
 <option value="" selected="selected">Choose a category</option><?php echo ACP_select();?></select></td>
-
 		</tr>
-		</table>
+		<tr valign="top"><th scope="row"><?php _e('Post now instantly: ','auto-content-poster');?></th>
+		<td style="width: 100px;">
+			<a class="button-primary" href="options-general.php?page=PostSetting&post_now=true">Post Now</a>
+		</td>
+		</tr>
+	</table>
 		 <?php submit_button();?>
 	</form>
+	<p style="font-size: 16px; color: #4db805">If you found my plugin usefull then please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W">Donate</a> to support me, Thank you</p>
+	<p>If you have a any problem in my plugin or wish to request a feature then do not hesitate to <a href="mailto:dr.bhavin.tolia@gmail.com">contact</a> me. OR <a href="http://www.acp.y5q.net">Visit plugin site</a></p>
 </div>

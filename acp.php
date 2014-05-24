@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.4
+Version: 1.5
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -98,7 +98,11 @@ function ACP_deactivate() {
 		delete_option('ACP_settings');
 		delete_option('ACP_advance_settings');
 		$q = "DROP TABLE bestcjdb";
+		$q2 = "DROP TABLE acp_tmp";
+		$q3 = "DROP TABLE opttable";
 		$wpdb->query($q);
+		$wpdb->query($q2);
+		$wpdb->query($q3);
 	}
 
 function ACP_cj($b){
@@ -490,16 +494,16 @@ function acp_asin($parsed_xml){
 }
 
 function acp_itemlookup($asin){
+	global $prikey,$acckey,$region,$asstag;
 	$Operation = "ItemLookup";
 	$Version = "2011-08-01";
 	$ResponseGroup = "Large";
-	$pkey = 'tmMHIlsu+j6Xjs/4y+sH3ezJzYHfaqtksUTAM8ot';
-	$Keywords = rawurlencode('PerioTherapy Oral Rinse (4) & Paste (2)');
+	$pkey = $prikey;
 	$method = "GET";
-	$host = "ecs.amazonaws.com"; //new API 12-2011
+	$host = "ecs.amazonaws.".$region; //new API 12-2011
 	$uri = "/onca/xml";
 	$time = rawurlencode(gmdate("Y-m-d\TH:i:s\Z"));
-	$request = "AWSAccessKeyId=AKIAJY6Q5EUNGZHQXZAA&AssociateTag=bestfaredeals-20&ItemId=".$asin."&Operation=".$Operation."&ResponseGroup=".$ResponseGroup."&Service=AWSECommerceService&Timestamp=".$time."&Version=2011-08-01";
+	$request = "AWSAccessKeyId=".$acckey."&AssociateTag=".$asstag."&ItemId=".$asin."&Operation=".$Operation."&ResponseGroup=".$ResponseGroup."&Service=AWSECommerceService&Timestamp=".$time."&Version=2011-08-01";
 	$string_to_sign = $method."\n".$host."\n".$uri."\n".$request;
 	$signature = base64_encode(acp_hash_hmac("sha256", $string_to_sign, $pkey, True));
 	$signature = rawurlencode($signature);
