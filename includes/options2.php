@@ -3,11 +3,32 @@
         <p><strong><?php _e('Great Work ! All done.','auto-content-poster') ?></strong></p>
     </div>
 <?php } ?>
-<?php if( isset($_GET['post_now']) == true ) {
-	ACPposter();
+<?php if( isset($_GET['post_now']) == true and isset($_GET['adid'])) {
+	
+	$adid = $_GET['adid'];
+	
+	if($adid == 'random'){
+		ACPposter();
+	
 	 ?>
 	 <div id="message" class="updated">
-        <p><strong><?php _e('One post created successfully.','auto-content-poster') ?></strong></p>
+        <p><strong><?php _e('One post/link created successfully.','auto-content-poster') ?></strong></p>
+    </div>
+<?php }else{
+	$adid = (int)$adid;
+	global $wpdb;
+	$resu = $wpdb->get_results('SELECT adname,adcat FROM bestcjdb WHERE adid='.$adid);
+	ACPposter($adid);
+	?>
+	 <div id="message" class="updated">
+        <p><strong><?php _e('One post/link created successfully for '.$resu[0]->adname,'auto-content-poster') ?></strong></p>
+    </div>
+<?php } } ?>
+<?php if( isset($_GET['refresh']) == true ) {
+	ACP_refreshDB();
+	 ?>
+	 <div id="message" class="updated">
+        <p><strong><?php _e('Database refreshed successfully, New advertisers are added.','auto-content-poster') ?></strong></p>
     </div>
 <?php } ?>
 <div class="wrap">
@@ -21,8 +42,8 @@
 				<td><input type="number" name="ACP_advance_settings[post_record]" value="<?php if(!empty($advoptions['post_record']))echo $advoptions['post_record']; ?>" pattern="[0-9]{1}" oninvalid="setCustomValidity('Please enter numbers only, Maximum 9')" onchange="try{setCustomValidity('')}catch(e){}"/></td>
 			</tr>
 			<tr valign="top"><th scope="row"><?php _e('Choose option for category assignment: ','auto-content-poster');?></th>
-       <td style="width: 180px;"> <input type="radio" name="ACP_advance_settings[category]" value="auto"<?php checked( 'auto' == $advoptions['category'] ); ?> onclick="hide2();"/><?php _e('Automatically post in category based on advertiser\'s category in CJ','auto-content-poster');?> </td>
-<td><input type="radio" name="ACP_advance_settings[category]" value="manual"<?php checked( 'manual' == $advoptions['category'] ); ?> onclick="show2();"/><?php _e('Enter Category name: ','auto-content-poster');?><input type="text" id="category_name" name="ACP_advance_settings[category_name]" value="<?php if(!empty($advoptions['category_name']))echo $advoptions['category_name'];?>" style="display: none;"/></td>
+       <td style="width: 50%;"> <input type="radio" name="ACP_advance_settings[category]" value="auto"<?php checked( 'auto' == $advoptions['category'] ); ?> onclick="hide2();"/><?php _e('Automatically post in category based on advertiser\'s category in CJ','auto-content-poster');?> </td>
+<td style="width: 50%;"><input type="radio" name="ACP_advance_settings[category]" value="manual"<?php checked( 'manual' == $advoptions['category'] ); ?> onclick="show2();"/><?php _e('Enter Category name: ','auto-content-poster');?><input type="text" id="category_name" name="ACP_advance_settings[category_name]" value="<?php if(!empty($advoptions['category_name']))echo $advoptions['category_name'];?>" style="display: none;"/></td>
 				
 			</tr>
 			<tr valign="top"><th scope="row"><?php _e('Choose an Interval: ','auto-content-poster');?></th>
@@ -38,7 +59,16 @@
 		</tr>
 		<tr valign="top"><th scope="row"><?php _e('Post now instantly: ','auto-content-poster');?></th>
 		<td style="width: 100px;">
-			<a class="button-primary" href="options-general.php?page=PostSetting&post_now=true">Post Now</a>
+		<?php _e('Choose random OR specific advertiser for Post ','auto-content-poster');?>
+			<select name="ACP_advance_settings[adid]" id="adid">
+<option value="random" selected="selected">Random Advertiser</option><?php echo acp_alladvs();?></select>
+			<a class="button-primary" href="javascript:if (document.getElementById('adid').value) window.open('options-general.php?page=PostSetting&post_now=true&adid='+document.getElementById('adid').value,'_self');">Post Now</a>
+		</td>
+		</tr>
+		<tr valign="top"><th scope="row"><?php _e('Refresh advertiser\'s list in Database : ','auto-content-poster');?></th>
+		<td style="width: 100px;">
+			<a class="button-primary" href="options-general.php?page=PostSetting&refresh=true">Refresh Database</a>
+			<br>Refreshing of database is depends on how frequently you joins new advertisers in CJ, Generally once a month is sufficient. Please note that plugin refreshs it automatically after all advertisers processed but you can refresh it here manually also. 
 		</td>
 		</tr>
 	</table>

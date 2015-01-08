@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.5
+Version: 1.6
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -178,6 +178,43 @@ VALUES(NULL,'".$adv->{'advertiser-id'}."','".$adn."','".$adc."')");
  $wpdb->query('UPDATE bestcjdb SET tmp=1 WHERE id=1');
 }	
 
+function ACP_refreshDB(){
+	global $wpdb;
+	$r2 = $wpdb->get_results('SELECT tmp FROM bestcjdb WHERE id=1');
+	$b = $r2[0]->tmp;
+	$wpdb->query("TRUNCATE TABLE `bestcjdb`");
+	$pn=1;
+$advs = ACP_cj($pn);
+foreach ($advs->advertisers[0] as $adv) 
+		{
+	$adn = str_replace("'","",$adv->{'advertiser-name'});
+			$adc = str_replace("'","",$adv->{'primary-category'}->child);
+	$wpdb->query("INSERT INTO `bestcjdb`(`id`,`adid`,`adname`,`adcat`)
+VALUES(NULL,'".$adv->{'advertiser-id'}."','".$adn."','".$adc."')");
+		}
+$attributes = $advs->advertisers->attributes();
+$n = $attributes->{'total-matched'};
+$t = (int)($attributes->{'total-matched'}/100);
+$s = $attributes->{'total-matched'}%100;
+if($s!=0){
+	$t+=1;
+}
+
+if($t>=2){
+for($i=2;$i<=$t;$i++){
+	$advs = ACP_cj($i);
+	foreach ($advs->advertisers[0] as $adv) 
+		{
+			$adn = str_replace("'","",$adv->{'advertiser-name'});
+			$adc = str_replace("'","",$adv->{'primary-category'}->child);
+	$wpdb->query("INSERT INTO `bestcjdb`(`id`,`adid`,`adname`,`adcat`)
+VALUES(NULL,'".$adv->{'advertiser-id'}."','".$adn."','".$adc."')");
+		}
+  }
+ }
+ $wpdb->query('UPDATE bestcjdb SET tmp='.$b.' WHERE id=1');
+}
+
 function ACP_checkdb(){
 	global $wpdb;
 	$sql = "SHOW TABLES LIKE 'bestcjdb'";
@@ -194,7 +231,7 @@ if($retval == 0 || $retval2[0][0] == 0)
 }
 }
 
-function ACPposter(){
+function ACPposter($a=''){
 		global $wpdb,$api_key,$webid,$record,$cat,$table,$amazon,$acckey,$prikey,$asstag,$region,$ebay,$ebayaff,$ebc;
 		$r = $wpdb->get_results('SELECT MAX(id) FROM '.$table);
 		$max = $r[0]->{'MAX(id)'};
@@ -205,11 +242,16 @@ function ACPposter(){
 		if($b<$max){
 		$wpdb->query('UPDATE '.$table.' SET tmp=tmp+1 WHERE id=1');
 		}else{
-		$wpdb->query('UPDATE '.$table.' SET tmp=1 WHERE id=1');
+		ACP_alltodb();
 		
 		}
+		if(empty($a)){
+			$adid = $resu[0]->adid;
+		}else{
+			$adid = $a;
+		}
 		$url = 'https://product-search.api.cj.com/v2/product-search?website-id='.$webid.
-			'&advertiser-ids='.$resu[0]->adid.
+			'&advertiser-ids='.$adid.
 			'&records-per-page='.$record;
 		$headers = array( 'Authorization' => $api_key );
 		$request = new WP_Http;
@@ -220,7 +262,7 @@ function ACPposter(){
 		if ($attributes->{'total-matched'} == 0)
 		{
 			//if products not availabe for given advertiser id then getting text link
-			$url = 'https://linksearch.api.cj.com/v2/link-search?website-id='.$webid.'&advertiser-ids='.$resu[0]->adid.'&link-type=text+link&records-per-page=1';
+			$url = 'https://linksearch.api.cj.com/v2/link-search?website-id='.$webid.'&advertiser-ids='.$adid.'&link-type=text+link&records-per-page=1';
 		$headers = array( 'Authorization' => $api_key );
 		$request = new WP_Http;
 		$result = $request->request( $url , array( 'method' => 'GET', 'headers' => $headers, 'sslverify' => false ) );
@@ -595,6 +637,19 @@ if($cnt > 1){
 }else{
 	return FALSE;
 }
+}
+
+function acp_alladvs(){
+	global $wpdb;
+	$sql = "SELECT adid,adname FROM bestcjdb ORDER BY adname ASC";
+	$retval =  $wpdb->get_results($sql,ARRAY_N);
+	$select = '';
+	foreach($retval as $n){
+	
+		$select .= '<option value="'.$n[0].'">'.$n[1].'</option>';
+	
+	}
+	return $select;
 }
 
 if( class_exists( 'ACP_Wordpress' ) ) {

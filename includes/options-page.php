@@ -9,7 +9,7 @@
 		<?php settings_fields( 'ACP_settings' ); ?>
 		<?php $options = get_option('ACP_settings'); ?> 
 		<table class="form-table">
-			<tr valign="top"><th scope="row"><?php _e('CJ Website ID','auto-content-poster');?></th>
+			<tr valign="top"><th scope="row"><?php _e('CJ Website ID(PID)','auto-content-poster');?></th>
 				<td><input type="text" name="ACP_settings[cj_site_id]" value="<?php if(!empty($options['cj_site_id']))echo $options['cj_site_id']; ?>" /></td>
 			</tr>
 			<tr valign="top"><th scope="row"><?php _e('CJ API KEY','auto-content-poster');?></th>
@@ -41,7 +41,7 @@
 				</select>
 				</td>
 			</tr>
-			<tr valign="top"><th scope="row"><?php _e('Ebay Affiliate ID(CampaignID):','auto-content-poster');?></th>
+			<tr valign="top"><th scope="row"><?php _e('Ebay Affiliate ID(CampaignID in Ebay Partner Network):','auto-content-poster');?></th>
 				<td><input type="text" name="ACP_settings[ACP_ebay_key]" value="<?php if(!empty($options['ACP_ebay_key']))echo $options['ACP_ebay_key']; ?>" /></td>
 			</tr>	
 			<tr valign="top"><th scope="row"><?php _e('Select Ebay Country(ebay-site):','auto-content-poster');?></th>
