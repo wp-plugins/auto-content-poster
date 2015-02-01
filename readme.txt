@@ -5,7 +5,7 @@ Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_i
 Tags: auto blog, auto post, auto content poster, autoposter,auto poster,commission junction,affliate, marketing
 Requires at least: 3.0
 Tested up to: 4.1
-Stable tag: 1.6
+Stable tag: 1.7
 License: GPLv2,
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ you can contact me directly <a href="mailto:ytolia@gmail.com">here</a> or visit 
 = 1.6 =
 * minor fixes
 * new features added
+= 1.7 =
+* minor fixes
+* new features added
 
 == Upgrade Notice ==
 
@@ -102,5 +105,8 @@ Plugin release
 * minor fixes
 * new features added
 = 1.6 =
+* minor fixes
+* new features added
+= 1.7 =
 * minor fixes
 * new features added

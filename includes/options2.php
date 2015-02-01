@@ -75,5 +75,11 @@
 		 <?php submit_button();?>
 	</form>
 	<p style="font-size: 16px; color: #4db805">If you found my plugin usefull then please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W">Donate</a> to support me, Thank you</p>
+	<b style="font-size: 14px; color: #860000">Pleass Read : </b>
+	<p>By default my plugin uses Wordpress's built in cron functions to schedule posts. While no additional setup is necessary. But it have a few disadvantages, namely it will only run when a visitor visits your site.</p>
+				
+	<p>>As an alternative you can set up an Unix Cron Job in your webhosts control panel (often cPanel) to create automatic posts. This will use less ressources on your server and be more reliable than the Wordpress solution. To set up a cron job you need to use the following command: wget -O /dev/null <?php
+echo plugins_url('cron.php', __FILE__ );
+?></p>
 	<p>If you have a any problem in my plugin or wish to request a feature then do not hesitate to <a href="mailto:dr.bhavin.tolia@gmail.com">contact</a> me. OR <a href="http://www.acp.y5q.net">Visit plugin site</a></p>
 </div>

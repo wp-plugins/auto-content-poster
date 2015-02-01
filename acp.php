@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.6
+Version: 1.7
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -72,22 +72,7 @@ function ACP_interval($c,$int=''){
 			wp_clear_scheduled_hook('ACPdailyevent');
 			wp_schedule_event(time(),'twicedaily','ACPdailyevent');
 			break;
-		case 'custom':
-			if($int){
-				add_filter('cron_schedules', 'ACP_cron_schedules');
-				
-				function ACP_cron_schedules() {
-					global $in;
-     				return array('custom' => array(
-         				 'interval' => $in, // seconds
-         				 'display'  => __('Custom Interval')
-    				 ));
-				}
-				wp_clear_scheduled_hook('ACPdailyevent');
-				wp_schedule_event(time(),'custom','ACPdailyevent');
-				
-			}
-			break;
+		
 	}
 
 }
@@ -270,6 +255,10 @@ function ACPposter($a=''){
 		foreach ($data->links[0] as $link) 
 							{
 							// Sanitize data.
+							$r3 = $wpdb->get_results('select * from '.$wpdb->links.' where link_name="'.$link->{'advertiser-name'}.'"');
+							if(!empty($r3)){
+								continue;
+							}
 							$pd = $link->{'link-code-html'};
 							preg_match("/a[\s]+[^>]*?href[\s]?=[\s\"\']+".
 										"(.*?)[\"\']+.*?>"."([^<]+|.*?)?<\/a>/",$pd,$matches);
@@ -306,14 +295,19 @@ function ACPposter($a=''){
 				foreach ($data->products[0] as $product) 
 				{
 				// Sanitize data.
-				
-				$image = '<a href="'.$product->{'buy-url'}.'"><img src="'.$product->{'image-url'}.'" style="float: right;"/></a>';
-				if($product->{'sale-price'}){
-					$price = $product->{'sale-price'};
-				}else{
-					$price = $product->price;
+				$postid = $wpdb->get_var('SELECT ID FROM '.$wpdb->posts.' WHERE post_title = "'.$product->name.'"');
+				if($postid){
+					continue;
 				}
-				$pd =  $image.$product->description .'<br/><b>Price:</b>'.$price.' '.$product->currency.'&nbsp;&nbsp;&nbsp;<a href="'.$product->{'buy-url'}.'">Read More and Buy it here!</a>';
+				$image = '<a href="'.$product->{'buy-url'}.'"><img src="'.$product->{'image-url'}.'" style="float: right; width:200px; height:200px;"/></a>';
+				if($product->{'sale-price'}){
+					$price = '<b>Price: &nbsp;$&nbsp;</b>'.$product->{'sale-price'}.'&nbsp;&nbsp;&nbsp;';
+				}elseif($product->price){
+					$price = '<b>Price: &nbsp;$&nbsp;</b>'.$product->price.'&nbsp;&nbsp;&nbsp;';
+				}else{
+					$price = '';
+				}
+				$pd =  $image.$product->description.$price.'<a href="'.$product->{'buy-url'}.'">Read More and Buy it here!</a>';
 				$pd .= '<br><table>';
 				if($amazon){
 					$asin = acp_asin(acp_amazon_search($prikey,$product->name,$region,$acckey,$asstag));
@@ -345,14 +339,14 @@ function ACPposter($a=''){
 				}
 				$pd .= '</table>';
 				if($cat){
-					$ids = get_term_by('slug', $cat, 'link_category');//wordpress function
+					$ids = get_term_by('slug', $cat, 'category');//wordpress function
 					if($ids){
 						$id = (int)$ids->term_id;
 					}else{
 						$id = wp_create_category($cat);
 					}
 				}else{
-					$ids = get_term_by('slug', $resu[0]->adcat, 'link_category');//wordpress function
+					$ids = get_term_by('slug', $resu[0]->adcat, 'category');//wordpress function
 					if($ids){
 						$id = (int)$ids->term_id;
 					}else{
@@ -582,7 +576,7 @@ function acp_offers($pxml){
 				
 				$timg = $item->MediumImage->URL;
 				if($timg == "") {$timg = $item->SmallImage->URL;}				
-				$thumbnail = '<a href="'.$item->DetailPageURL.'" rel="nofollow"><img style="float:left;margin: 0 20px 10px 0;" src="'.$timg.'" /></a>';					
+				$thumbnail = '<a href="'.$item->DetailPageURL.'" rel="nofollow"><img style="float:right;width:150px;height:150px;" src="'.$timg.'" /></a>';					
 				$link = '<a href="'.$item->DetailPageURL.'" rel="nofollow">'.$item->ItemAttributes->Title.'</a>';	
 				$price = str_replace("$", "$ ", $item->OfferSummary->LowestNewPrice->FormattedPrice);
 				$listprice = str_replace("$", "$ ", $item->ItemAttributes->ListPrice->FormattedPrice);
