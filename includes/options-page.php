@@ -28,16 +28,16 @@
 			</tr>
 			<tr valign="top"><th scope="row"><?php _e('Select Amazon Associate Region:','auto-content-poster');?></th>
 				<td><select name="ACP_settings[rselect]" id="rselect">
-				<option value="com" <?php selected('com' == $advoptions['rselect']);?>>USA</option>
-				<option value="ca" <?php selected('ca' == $advoptions['rselect']);?>>Canada</option>
-				<option value="co.uk" <?php selected('co.uk' == $advoptions['rselect']);?>>UK</option>
-				<option value="cn" <?php selected('cn' == $advoptions['rselect']);?>>China</option>
-				<option value="in" <?php selected('in' == $advoptions['rselect']);?>>India</option>
-				<option value="fr" <?php selected('fr' == $advoptions['rselect']);?>>France</option>
-				<option value="de" <?php selected('de' == $advoptions['rselect']);?>>Germany</option>
-				<option value="es" <?php selected('es' == $advoptions['rselect']);?>>Spain</option>
-				<option value="it" <?php selected('it' == $advoptions['rselect']);?>>Italy</option>
-				<option value="co.jp" <?php selected('co.jp' == $advoptions['rselect']);?>>Japan</option>
+				<option value="com" <?php selected('com' == $options['rselect']);?>>USA</option>
+				<option value="ca" <?php selected('ca' == $options['rselect']);?>>Canada</option>
+				<option value="co.uk" <?php selected('co.uk' == $options['rselect']);?>>UK</option>
+				<option value="cn" <?php selected('cn' == $options['rselect']);?>>China</option>
+				<option value="in" <?php selected('in' == $options['rselect']);?>>India</option>
+				<option value="fr" <?php selected('fr' == $options['rselect']);?>>France</option>
+				<option value="de" <?php selected('de' == $options['rselect']);?>>Germany</option>
+				<option value="es" <?php selected('es' == $options['rselect']);?>>Spain</option>
+				<option value="it" <?php selected('it' == $options['rselect']);?>>Italy</option>
+				<option value="co.jp" <?php selected('co.jp' == $options['rselect']);?>>Japan</option>
 				</select>
 				</td>
 			</tr>
