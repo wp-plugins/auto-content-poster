@@ -31,6 +31,14 @@
         <p><strong><?php _e('Database refreshed successfully, New advertisers are added.','auto-content-poster') ?></strong></p>
     </div>
 <?php } ?>
+<?php if(isset($_POST['submit2'])){
+	$adids = $_POST['adid2'];
+	$sticky = TRUE;
+	foreach($adids as $id){
+		$m = ACPposter($id,$sticky);
+		echo $m;
+	}
+}?>
 <div class="wrap">
 	<h2><?php _e('Auto Content Poster - Advance Settings','auto-content-poster');?></h2>
 
@@ -73,6 +81,18 @@
 		</tr>
 	</table>
 		 <?php submit_button();?>
+	</form>
+	<form method="post" action="#" name="adv_form2" >
+	<table class="form-table">
+	<tr valign="top"><th scope="row"><?php _e('Make featured post for selected advertisers: <br>(Hold Ctrl for multiple selection)','auto-content-poster');?></th>
+		<td style="width: 100px;">
+		<select name="adid2[]" id="stic" multiple="multiple" size="10">
+<?php echo acp_alladvs();?></select>
+			
+		</td>
+		</tr>
+		</table>
+		 <input class="button-primary" type="submit" name="submit2" value="Make Sticky"/>
 	</form>
 	<p style="font-size: 16px; color: #4db805">If you found my plugin usefull then please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W">Donate</a> to support me, Thank you</p>
 	<b style="font-size: 14px; color: #860000">Pleass Read : </b>

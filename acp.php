@@ -4,13 +4,13 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.8
+Version: 1.9
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
 */
-ini_set('display_errors', 1 ); 
-set_time_limit(600);
+ini_set('display_errors', 0 ); 
+set_time_limit(0);
 
 class ACP_Wordpress {
 
@@ -218,7 +218,7 @@ if($retval == 0 || $retval2[0][0] == 0)
 }
 }
 
-function ACPposter($a=''){
+function ACPposter($a='',$sticky=FALSE){
 		global $wpdb,$api_key,$webid,$record,$cat,$table,$amazon,$acckey,$prikey,$asstag,$region,$ebay,$ebayaff,$ebc;
 		$r = $wpdb->get_results('SELECT MAX(id) FROM '.$table);
 		$max = $r[0]->{'MAX(id)'};
@@ -245,10 +245,15 @@ function ACPposter($a=''){
 		$result = $request->request( $url , array( 'method' => 'GET', 'headers' => $headers, 'sslverify' => false ) );
 		$data = new SimpleXMLElement($result['body']);
 		$attributes = $data->products->attributes();
-	
+	$msg = '';
 		if ($attributes->{'total-matched'} == 0)
 		{
 			//if products not availabe for given advertiser id then getting text link
+			if($sticky == TRUE){
+				$resu2 = $wpdb->get_results('SELECT adname FROM '.$table.' WHERE adid='.$adid);
+				$msg = '<div id="message" class="error">'.$resu2[0]->adname.' does not have a products</div>';
+				return $msg; 
+			}
 			$url = 'https://linksearch.api.cj.com/v2/link-search?website-id='.$webid.'&advertiser-ids='.$adid.'&link-type=text+link&records-per-page=1';
 		$headers = array( 'Authorization' => $api_key );
 		$request = new WP_Http;
@@ -299,6 +304,13 @@ function ACPposter($a=''){
 				// Sanitize data.
 				$postid = $wpdb->get_var('SELECT ID FROM '.$wpdb->posts.' WHERE post_title = "'.$product->name.'"');
 				if($postid){
+					if($sticky == TRUE){
+						ACP_makesticky($postid);
+						$resu2 = $wpdb->get_results('SELECT adname FROM '.$table.' WHERE adid='.$adid);
+				$msg = '<div id="message" class="updated">Posted '.$record.' product as a featured posts for '.$resu2[0]->adname.'</div>';
+						
+						return $msg;
+					}
 					continue;
 				}
 				$image = '<a href="'.$product->{'buy-url'}.'"><img src="'.$product->{'image-url'}.'" style="float: right; width:200px; height:200px;"/></a>';
@@ -361,7 +373,12 @@ function ACPposter($a=''){
   					'post_author'   => 1,
   					'post_category'  =>array($id));
 				$pr = wp_insert_post($p);
-				
+				if($sticky == TRUE){
+					$resu2 = $wpdb->get_results('SELECT adname FROM '.$table.' WHERE adid='.$adid);
+				$msg = '<div id="message" class="updated">Posted '.$record.' product as a featured posts for '.$resu2[0]->adname.'</div>';
+						ACP_makesticky($pr);
+						return $msg;
+					}
 				
 				}
 			}
@@ -648,6 +665,14 @@ function acp_alladvs(){
 	return $select;
 }
 
+function ACP_makesticky($id){
+$sticky = get_option( 'sticky_posts' );
+if(!in_array($id,$sticky)){
+	array_push($sticky,$id);
+update_option('sticky_posts',$sticky);
+}
+}
+
 if( class_exists( 'ACP_Wordpress' ) ) {
 	$ACP = new ACP_Wordpress();
 	
@@ -729,6 +754,7 @@ if( class_exists( 'ACP_Wordpress' ) ) {
  	include_once(ABSPATH.'wp-admin/includes/taxonomy.php');
  	include_once(ABSPATH.'wp-admin/includes/bookmark.php');
 	$record = $advoptions['post_record'];
+	$adids = $advoptions['adid2'];
 	$api_key = $options['ACP_key'];
 	$webid = $options['cj_site_id'];
 	add_action('ACPdailyevent','ACPposter');
