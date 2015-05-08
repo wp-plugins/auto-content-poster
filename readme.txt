@@ -4,8 +4,8 @@ Contributors:  DR_BVT123
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W
 Tags: auto blog, auto post, auto content poster, autoposter,auto poster,commission junction,affliate, marketing
 Requires at least: 3.0
-Tested up to: 4.1
-Stable tag: 1.9
+Tested up to: 4.2.2
+Stable tag: 1.9.1
 License: GPLv2,
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -51,7 +51,7 @@ Category will be created based on advertiser's category in commission junction, 
 Default time is 24 hour, you can also set it to hourly/twice daily/daily in advance settings page. Please note that this Plugin uses wordpress's cron function to archive that so your blog needs to have enough traffic for automatic posting.
 
 = I have a feature request/bug report, where can I submit it? =
-you can contact me directly <a href="mailto:ytolia@gmail.com">here</a> or visit plugin site: 
+you can contact me directly <a href="mailto:ytolia@gmail.com">here</a> or <a herf="http://www.acp.y5q.net">visit plugin site</a>: 
 
 == Screenshots ==
 
@@ -89,6 +89,9 @@ you can contact me directly <a href="mailto:ytolia@gmail.com">here</a> or visit 
 = 1.9 =
 * minor fixes
 * new features added
+= 1.9.1 =
+* minor fixes
+* new features added
 
 == Upgrade Notice ==
 
@@ -120,5 +123,8 @@ Plugin release
 * minor fixes
 * new features added
 = 1.9 =
+* minor fixes
+* new features added
+= 1.9.1 =
 * minor fixes
 * new features added

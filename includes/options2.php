@@ -1,4 +1,16 @@
-<?php if( isset($_GET['settings-updated']) ) { ?>
+<?php if( isset($_GET['settings-updated']) ) {
+	$advoptions = get_option('ACP_advance_settings');
+	$adid3 = $advoptions['adid3'];
+	
+	if(!empty($adid3)){
+		$msg = ACP_cj_product_status($adid3);
+	
+	 ?>
+	 <div id="message" class="<?php echo $msg['class'];?>">
+        <p><strong><?php _e($msg['msg'],'auto-content-poster') ?></strong></p>
+    </div>
+<?php }
+	 ?>
     <div id="message" class="updated">
         <p><strong><?php _e('Great Work ! All done.','auto-content-poster') ?></strong></p>
     </div>
@@ -65,6 +77,23 @@
        <td style="width: 100px;"><input type="radio" value="manual_cj" name="ACP_advance_settings[category_cj]" <?php checked( 'manual_cj' == $advoptions['category_cj'] ); ?> onclick="show3();"/><?php _e('Choose below:(number shows available advertisers in that category) ','auto-content-poster');?><select name="ACP_advance_settings[cselect]" id="cselect" style="display: none;">
 <option value="" selected="selected">Choose a category</option><?php echo ACP_select();?></select></td>
 		</tr>
+		<tr valign="top"><th scope="row"><?php _e('Auto-posting of all products from individual(single) advertiser: ','auto-content-poster');?></th>
+		<td style="width: 100px;">
+		<select name="ACP_advance_settings[adid3]" id="sing">
+<option value=""<?php selected($advoptions['adid3']);?>>Select Advertiser</option>
+<?php 
+global $wpdb;
+	$sql = "SELECT adid,adname FROM bestcjdb ORDER BY adname ASC";
+	$retval =  $wpdb->get_results($sql,ARRAY_N);
+	
+	foreach($retval as $n){
+	
+		echo '<option value="'.$n[0].'"'.selected($advoptions['adid3'],$n[0]).'>'.$n[1].'</option>';
+	
+	}
+?></select>			
+		</td>
+		</tr>
 		<tr valign="top"><th scope="row"><?php _e('Post now instantly: ','auto-content-poster');?></th>
 		<td style="width: 100px;">
 		<?php _e('Choose random OR specific advertiser for Post ','auto-content-poster');?>
@@ -81,7 +110,7 @@
 		</tr>
 	</table>
 		 <?php submit_button();?>
-	</form>
+	</form><br />
 	<form method="post" action="#" name="adv_form2" >
 	<table class="form-table">
 	<tr valign="top"><th scope="row"><?php _e('Make featured post for selected advertisers: <br>(Hold Ctrl for multiple selection)','auto-content-poster');?></th>
@@ -93,13 +122,14 @@
 		</tr>
 		</table>
 		 <input class="button-primary" type="submit" name="submit2" value="Make Sticky"/>
-	</form>
+	</form><br>
+	
 	<p style="font-size: 16px; color: #4db805">If you found my plugin usefull then please <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=6GLU2ZTKHSF2W">Donate</a> to support me, Thank you</p>
-	<b style="font-size: 14px; color: #860000">Pleass Read : </b>
+	<b style="font-size: 14px; color: #860000">Please Read : </b>
 	<p>By default my plugin uses Wordpress's built in cron functions to schedule posts. While no additional setup is necessary. But it have a few disadvantages, namely it will only run when a visitor visits your site.</p>
 				
 	<p>>As an alternative you can set up an Unix Cron Job in your webhosts control panel (often cPanel) to create automatic posts. This will use less ressources on your server and be more reliable than the Wordpress solution. To set up a cron job you need to use the following command: wget -O /dev/null <?php
 echo plugins_url('cron.php', __FILE__ );
 ?></p>
-	<p>If you have a any problem in my plugin or wish to request a feature then do not hesitate to <a href="mailto:dr.bhavin.tolia@gmail.com">contact</a> me. OR <a href="http://www.acp.y5q.net">Visit plugin site</a></p>
+	<p>If you have a any problem in my plugin or wish to request a feature then do not hesitate to <a href="mailto:dr.bhavin.tolia@gmail.com">contact</a> me. OR <a href="http://www.acp.y5q.net">Visit plugin site to order customized plugin.</a></p>
 </div>

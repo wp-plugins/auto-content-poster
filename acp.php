@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.9
+Version: 1.9.1
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -71,6 +71,25 @@ function ACP_interval($c,$int=''){
 		case 'twicedaily':
 			wp_clear_scheduled_hook('ACPdailyevent');
 			wp_schedule_event(time(),'twicedaily','ACPdailyevent');
+			break;
+		
+	}
+
+}
+
+function ACP_interval2($c){
+	switch($c){
+		case 'daily':
+			wp_clear_scheduled_hook('ACPdailyevent2');
+			wp_schedule_event(time(),'daily','ACPdailyevent2');
+			break;
+		case 'hourly':
+			wp_clear_scheduled_hook('ACPdailyevent2');
+			wp_schedule_event(time(),'hourly','ACPdailyevent2');
+			break;
+		case 'twicedaily':
+			wp_clear_scheduled_hook('ACPdailyevent2');
+			wp_schedule_event(time(),'twicedaily','ACPdailyevent2');
 			break;
 		
 	}
@@ -385,6 +404,85 @@ function ACPposter($a='',$sticky=FALSE){
 	
 }
 
+function ACPposterIndv(){
+		global $wpdb,$api_key,$webid,$record,$cat,$amazon,$acckey,$prikey,$asstag,$region,$ebay,$ebayaff,$ebc,$adid3;
+		$r = $wpdb->get_results('SELECT * FROM cjindvdb WHERE adid='.$adid3);
+		$max = $r[0]->total;
+		$tb = $wpdb->prefix.'cj'.$adid3;
+		$b = $r[0]->tmp;
+		$r2 = $wpdb->get_results('SELECT * FROM '.$tb.' WHERE id='.$b);
+		$product = $r2[0];
+		if($b<$max){
+		$wpdb->query('UPDATE cjindvdb SET tmp=tmp+1 WHERE adid='.$adid3);
+		}else{
+		$wpdb->query('UPDATE cjindvdb SET tmp=0 WHERE adid='.$adid3);
+		}
+		$postid = $wpdb->get_var('SELECT ID FROM '.$wpdb->posts.' WHERE post_title = "'.$product->Name.'"');
+		if($postid){
+			return;
+		}
+		$image = '<a href="'.$product->BuyUrl.'"><img src="'.$product->ImageUrl.'" style="float: right; width:200px; height:200px;"/></a>';
+				if($product->PriceSale){
+					$price = '<b>Price: &nbsp;$&nbsp;</b>'.$product->PriceSale.'&nbsp;&nbsp;&nbsp;';
+				}elseif($product->Price){
+					$price = '<b>Price: &nbsp;$&nbsp;</b>'.$product->Price.'&nbsp;&nbsp;&nbsp;';
+				}else{
+					$price = '';
+				}
+		$pd =  $image.$product->Description.$price.'<a href="'.$product->BuyUrl.'">Read More and Buy it here!</a>';
+				$pd .= '<br><table>';
+				if($amazon){
+					$asin = acp_asin(acp_amazon_search($prikey,$product->Name,$region,$acckey,$asstag));
+					if($asin){
+						$x = 0;
+						$pd .= '<tr><th>Related Products In Amazon</th>';
+						foreach($asin as $as){
+							$am = acp_itemlookup($as[0]);
+							$amz = acp_offers($am);
+							$pd .= '<td>'.$amz['thumbnail'].$amz['description'].'<br/><b>Price:</b>'.$amz['price'].'&nbsp;&nbsp;&nbsp;'.$amz['buynow'].'</td>';
+							if($x == 1){
+								break;
+							}
+							$x++;
+						}
+						$pd .= '</tr>';
+					}else{
+						$pd .= '<tr><th>Related Products In Amazon</th><td>No Matched Products found in Amazon</td></tr>';
+					}
+				}
+				if($ebay){
+					$doc = acp_ebay($product->Name,$ebayaff,$ebc);
+					$return = acp_ebayparseRSS($doc);
+					if($return){
+						$pd .= $return;
+					}else{
+						$pd .= '<tr><th>Related Products In Ebay</th><td>No Matched Products found in Ebay</td></tr>';
+					}
+				}
+				$pd .= '</table>';
+				if($cat){
+					$ids = get_term_by('slug', $cat, 'category');//wordpress function
+					if($ids){
+						$id = (int)$ids->term_id;
+					}else{
+						$id = wp_create_category($cat);
+					}
+				}else{
+					$ids = get_term_by('slug', $r[0]->adcat, 'category');//wordpress function
+					if($ids){
+						$id = (int)$ids->term_id;
+					}else{
+						$id = wp_create_category($r[0]->adcat);
+					}
+				}
+				$p = array('post_title'    => $product->Name,
+  					'post_content'  => $pd,
+ 				 	'post_status'   => 'publish',
+  					'post_author'   => 1,
+  					'post_category'  =>array($id));
+				$pr = wp_insert_post($p);
+}
+
 function ACP_get_interval(){
 	foreach (_get_cron_array() as $timestamp => $crons) {
 	foreach ($crons as $cron_name => $cron_args) {
@@ -673,6 +771,114 @@ update_option('sticky_posts',$sticky);
 }
 }
 
+function ACP_cj_product_status($id){
+	ACP_cjindvtbl();
+	global $wpdb,$api_key,$webid;
+	$msg = array();
+	$r = $wpdb->get_row('SELECT * FROM cjindvdb WHERE adid='.$id);
+	if($r != NULL){
+		if($r->total == 0){
+			$msg['msg'] = 'Ooops '.$r->adname.' does not have a products as per Commission-Junction product-search api, Please select another advertiser.';
+			$msg['class'] = 'error';
+			$msg['status'] = FALSE;
+			return $msg;
+		}else{
+			$msg['msg'] = 'Great Work ! '.$r->adname.' has a '.$r->total.' products, Auto-Posting will be started as per interval setting.';
+			$msg['class'] = 'updated';
+			$msg['status'] = TRUE;
+			return $msg;
+		}
+	}else{
+		$r2 = $wpdb->get_row('SELECT * FROM bestcjdb WHERE adid='.$id);
+		$url = 'https://product-search.api.cj.com/v2/product-search?website-id='.$webid.
+			'&advertiser-ids='.$id.
+			'&records-per-page=1000';
+		$headers = array( 'Authorization' => $api_key );
+		$request = new WP_Http;
+		$result = $request->request( $url , array( 'method' => 'GET', 'headers' => $headers, 'sslverify' => false ) );
+		if ( !is_wp_error($result) ) {
+		$data = new SimpleXMLElement($result['body']);
+		$attributes = $data->products->attributes();
+		$total = $attributes->{'total-matched'};
+		if ($total == 0)
+		{
+			$wpdb->insert( 
+						'cjindvdb', 
+						array(  'adid' => $id,
+								'adname' => $r2->adname, 
+								'adcat' => $r2->adcat, 
+								'total' => 0, 
+								'tmp' => NULL, 
+							) 
+					);
+			$msg['msg'] = 'Ooops '.$r2->adname.' does not have a products as per Commission-Junction product-search api, Please select another advertiser.';
+			$msg['class'] = 'error';
+			$msg['status'] = FALSE;
+			return $msg;
+		}else{
+			$wpdb->insert( 
+						'cjindvdb', 
+						array(  'adid' => $id,
+								'adname' => $r2->adname, 
+								'adcat' => $r2->adcat, 
+								'total' => $total, 
+								'tmp' => 0, 
+							) 
+					);
+			$tb = $wpdb->prefix.'cj'.$id;
+		$sql = "CREATE TABLE ".$tb."( 
+       id INTEGER AUTO_INCREMENT,
+	   Name TEXT,
+	   ImageUrl TEXT,
+	   Description TEXT,
+	   BuyUrl TEXT,
+	   Price TEXT,
+	   PriceSale TEXT,
+	   PRIMARY KEY ( id )); ";
+require_once(ABSPATH.'wp-admin/includes/upgrade.php');
+   dbDelta($sql);
+   			foreach ($data->products[0] as $product){
+   				$wpdb->insert( 
+						$tb, 
+						array( 
+								'ImageUrl' => $product->{'image-url'}, 
+								'buyUrl' => $product->{'buy-url'},
+								'Name' => $product->name, 
+								'Price' => $product->price, 
+								'PriceSale' => $product->{'sale-price'}, 
+								'Description' => $product->description, 
+							) 
+					);
+			}
+			$msg['msg'] = 'Great Work ! '.$r2->adname.' has a '.$total.' products, Auto-Posting will be started as per interval setting.';
+			$msg['class'] = 'updated';
+			$msg['status'] = TRUE;
+			return $msg;
+		}
+		}
+	}
+}
+
+function ACP_cjindvtbl(){
+	global $wpdb;
+	$sql = "CREATE TABLE cjindvdb( 
+       id INT AUTO_INCREMENT,
+	   adid INT,
+	   adname TEXT,
+	   adcat TEXT,
+	   total INT,
+	   tmp INT,
+	   PRIMARY KEY ( id )); ";
+$sql2 = "SHOW TABLES LIKE 'cjindvdb'";
+$retval =  $wpdb->query($sql2); //wpdb class method
+
+//table check if exits or not
+if($retval == 0)
+{
+   $wpdb->query($sql);
+}
+}
+
 if( class_exists( 'ACP_Wordpress' ) ) {
 	$ACP = new ACP_Wordpress();
 	
@@ -734,10 +940,15 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 		$table = 'bestcjdb';
 	}
 	$s = wp_get_schedule('ACPdailyevent');
-	
+	$k = wp_get_schedule('ACPdailyevent2');
 	if($s != $advoptions['interval'] && $advoptions['interval'] != 'custom'){
 		
 			ACP_interval($advoptions['interval']);
+		
+	}
+	if($k != $advoptions['interval'] && $advoptions['interval'] != 'custom'){
+		
+			ACP_interval2($advoptions['interval']);
 		
 	}
 	if(!empty($advoptions['custom_int']) && $advoptions['interval'] == 'custom'){
@@ -754,10 +965,17 @@ if( class_exists( 'ACP_Wordpress' ) ) {
  	include_once(ABSPATH.'wp-admin/includes/taxonomy.php');
  	include_once(ABSPATH.'wp-admin/includes/bookmark.php');
 	$record = $advoptions['post_record'];
-	$adids = $advoptions['adid2'];
+	$adid3 = $advoptions['adid3'];
 	$api_key = $options['ACP_key'];
 	$webid = $options['cj_site_id'];
 	add_action('ACPdailyevent','ACPposter');
+	if(!empty($adid3)){
+		global $wpdb;
+		$re = $wpdb->get_row('SELECT * FROM cjindvdb WHERE adid='.$adid3);
+		if($re->total != 0){
+			add_action('ACPdailyevent2','ACPposterIndv');
+		}
+	}
 	
 }
 }
