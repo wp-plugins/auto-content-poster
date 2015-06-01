@@ -4,7 +4,7 @@ Plugin Name: Auto Content Poster
 Text Domain: auto-content-poster
 Plugin URI: http://www.acp.y5q.net
 Description: Allows users to automatically post products/link from commission junction API to WordPress.
-Version: 1.9.1
+Version: 1.9.2
 Author: Bhavin Toliya
 Author URI: http://www.acp.y5q.net
 License: GPL v2.
@@ -18,6 +18,7 @@ class ACP_Wordpress {
 	public function activate() {
 		$options = array( 'advertiser_relationship' => 'joined' ,
 		 'cache_duration' => '3600');
+		 
     if ( ! get_option('ACP_settings')){
       add_option('ACP_settings' , $options);
     } else {
@@ -879,6 +880,65 @@ if($retval == 0)
 }
 }
 
+function acp_cjreport(){
+	global $em,$api_key;
+	
+	$edate = date("Y-m-d", strtotime('now'));
+	$sdate = date("Y-m-01", strtotime("first day of this month") ) ;
+	$url = 'https://commission-detail.api.cj.com/v3/commissions?date-type=event'.
+        '&start-date='.$sdate.'&end-date='.$edate;
+	$headers2 = array( 'Authorization' => $api_key );
+	$request = new WP_Http;
+	$result = $request->request( $url , array( 'method' => 'GET', 'headers' => $headers2, 'sslverify' => false ) );
+	if ( is_wp_error($result) ) {
+			return;
+		} else {
+	$data = new SimpleXMLElement($result['body']);
+	$commissions = '<html><body><table border="0" cellspacing="2" cellpadding="2" style="width:800px; margin: auto 0px">'.
+				'<tr style="font-weight:bold">'.
+				'<td>Advertiser Name</td>'.
+				'<td>commission</td>'.
+				'<td>Action status</td>'.
+				'<td>original status</td>'.
+				'<td>Posting Date</td>'.
+				'</tr>';
+	
+$attributes = $data->commissions->attributes();
+	if ($attributes->{'total-matched'} == '0'){
+		$commissions .= '<tr><td colspan="5">No commissions found for that period...</td></tr>';
+	}else{
+		
+	foreach ($data->commissions[0] as $com) 
+	{
+		// Sanitize data.
+		$price = number_format((float)$com->{'commission-amount'}, 2, '.', ' ');
+		$adname = $com->{'advertiser-name'};
+		$as = $com->{'action-status'};
+		$or = $com->original;
+		$pd = $com->{'posting-date'};
+		// Add to list.
+		$commissions .= '<tr><td>'.$adname.'</td><td>'.$price .' </td>'.
+						'<td>'.$as.'</td><td>'.$or.'</td><td>'.$pd.'</td></tr>';
+	}
+	}
+	$commissions .= '</table></body></html>';
+
+$headers  = 'MIME-Version: 1.0' . "\r\n";
+$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+$m = array();
+if(mail($em,'CJ report of this month',$commissions,$headers)){
+	$m['msg'] = 'Email saved, Report will be send on daily basis.';
+	$m['class'] = 'updated';
+	return $m;
+}else{
+	$t = error_get_last();
+	$m['msg'] = 'SMTP server was not configured correctly, Contact your hosting provider with following error: '.$t['message'];
+	$m['class'] = 'error';
+	return $m;
+}
+}
+}
+
 if( class_exists( 'ACP_Wordpress' ) ) {
 	$ACP = new ACP_Wordpress();
 	
@@ -941,6 +1001,7 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 	}
 	$s = wp_get_schedule('ACPdailyevent');
 	$k = wp_get_schedule('ACPdailyevent2');
+	$j = wp_get_schedule('ACPdailymail');
 	if($s != $advoptions['interval'] && $advoptions['interval'] != 'custom'){
 		
 			ACP_interval($advoptions['interval']);
@@ -949,6 +1010,11 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 	if($k != $advoptions['interval'] && $advoptions['interval'] != 'custom'){
 		
 			ACP_interval2($advoptions['interval']);
+		
+	}
+	if($j != 'daily'){
+		
+			wp_schedule_event(time(),'daily','ACPdailymail');
 		
 	}
 	if(!empty($advoptions['custom_int']) && $advoptions['interval'] == 'custom'){
@@ -968,6 +1034,7 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 	$adid3 = $advoptions['adid3'];
 	$api_key = $options['ACP_key'];
 	$webid = $options['cj_site_id'];
+	$em = $advoptions['email'];
 	add_action('ACPdailyevent','ACPposter');
 	if(!empty($adid3)){
 		global $wpdb;
@@ -975,6 +1042,9 @@ if( class_exists( 'ACP_Wordpress' ) ) {
 		if($re->total != 0){
 			add_action('ACPdailyevent2','ACPposterIndv');
 		}
+	}
+	if(!empty($em)){
+		add_action('ACPdailymail','acp_cjreport');
 	}
 	
 }

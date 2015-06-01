@@ -1,7 +1,7 @@
 <?php if( isset($_GET['settings-updated']) ) {
 	$advoptions = get_option('ACP_advance_settings');
 	$adid3 = $advoptions['adid3'];
-	
+	$em = $advoptions['email'];
 	if(!empty($adid3)){
 		$msg = ACP_cj_product_status($adid3);
 	
@@ -10,7 +10,14 @@
         <p><strong><?php _e($msg['msg'],'auto-content-poster') ?></strong></p>
     </div>
 <?php }
-	 ?>
+if(!empty($em)){
+	$m = acp_cjreport();	
+?>
+	 <div id="message" class="<?php echo $m['class'];?>">
+        <p><strong><?php _e($m['msg'],'auto-content-poster') ?></strong></p>
+    </div>
+<?php
+}?>
     <div id="message" class="updated">
         <p><strong><?php _e('Great Work ! All done.','auto-content-poster') ?></strong></p>
     </div>
@@ -94,7 +101,19 @@ global $wpdb;
 ?></select>			
 		</td>
 		</tr>
-		<tr valign="top"><th scope="row"><?php _e('Post now instantly: ','auto-content-poster');?></th>
+		<tr valign="top"><th scope="row"><?php _e('Enter Your e-mail address to receive transaction report of your CJ account','auto-content-poster');?></th>
+		<td style="width: 100px;">
+		<input type="email" name="ACP_advance_settings[email]" value="<?php if(!empty($advoptions['email']))echo $advoptions['email']; ?>" /><br />
+		<?php _e('Report will be send by your hosting provide to your email daily in HTML format. Current month\'s transactions will be included in report','auto-content-poster');?>
+			
+		</td>
+		</tr>
+	</table>
+		 <?php submit_button();?>
+	</form><br />
+	<form method="post" action="#" name="adv_form2" >
+	<table class="form-table">
+	<tr valign="top"><th scope="row"><?php _e('Post now instantly: ','auto-content-poster');?></th>
 		<td style="width: 100px;">
 		<?php _e('Choose random OR specific advertiser for Post ','auto-content-poster');?>
 			<select name="ACP_advance_settings[adid]" id="adid">
@@ -108,11 +127,6 @@ global $wpdb;
 			<br>Refreshing of database is depends on how frequently you joins new advertisers in CJ, Generally once a month is sufficient. Please note that plugin refreshs it automatically after all advertisers processed but you can refresh it here manually also. 
 		</td>
 		</tr>
-	</table>
-		 <?php submit_button();?>
-	</form><br />
-	<form method="post" action="#" name="adv_form2" >
-	<table class="form-table">
 	<tr valign="top"><th scope="row"><?php _e('Make featured post for selected advertisers: <br>(Hold Ctrl for multiple selection)','auto-content-poster');?></th>
 		<td style="width: 100px;">
 		<select name="adid2[]" id="stic" multiple="multiple" size="10">
